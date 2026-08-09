@@ -43,47 +43,17 @@ The platform must:
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    Source["Daily retail CSV files"] --> Raw["Amazon S3 raw zone<br/>Original CSV"]
-    Raw --> Glue["AWS Glue Spark ETL<br/>Validate, deduplicate, transform"]
-    Glue -->|"Valid rows"| Curated["Amazon S3 curated zone<br/>Parquet and Snappy"]
-    Glue -->|"Rejected rows"| Quarantine["Amazon S3 quarantine zone<br/>Parquet plus reject_reason"]
-    Curated --> Crawler["AWS Glue Crawler"]
-    Crawler --> Catalog["AWS Glue Data Catalog"]
-    Catalog --> Athena["Amazon Athena"]
-    Athena --> Gold["Amazon S3 gold zone<br/>Daily sales and customer 360"]
-    StepFunctions["AWS Step Functions"] -->|"StartJobRun.sync"| Glue
-    Glue -. "job status and logs" .-> CloudWatch["Amazon CloudWatch"]
-    IAM["AWS IAM roles and policies"] -. "authorized access" .-> StepFunctions
-    IAM -. "authorized access" .-> Glue
-```
-
+![AWS Retail Analytics Data Lake architecture](diagrams/architecture.svg)
 ### Orchestration flow
 
-```mermaid
-flowchart TD
-    Start(["Start"]) --> GlueJob["RunBronzeToSilver<br/>Glue StartJobRun.sync"]
-    GlueJob -->|"Glue SUCCEEDED"| Success["PipelineSucceeded"]
-    GlueJob -->|"Catch: States.ALL"| Failure["PipelineFailed"]
-    Success --> Done(["Execution succeeded"])
-    Failure --> Failed(["Execution failed"])
-```
-
+![Step Functions orchestration flow](diagrams/orchestration-flow.svg)
 The `.sync` integration is important: Step Functions waits for the actual Glue job to finish instead of treating a successful `StartJobRun` API call as pipeline completion.
 
 ## Data lake zones
 
 This project uses the medallion pattern, with a separate quarantine path for rejected data.
 
-```mermaid
-flowchart LR
-    Bronze["BRONZE / RAW<br/>Immutable source CSV<br/>Audit and replay"] --> Validation["Glue validation and transformation"]
-    Validation --> Silver["SILVER / CURATED<br/>Clean typed Parquet<br/>Analytics-ready detail"]
-    Validation --> Quarantine["QUARANTINE<br/>Invalid records<br/>Rejection reason and run ID"]
-    Silver --> Gold["GOLD<br/>Business aggregates<br/>Daily sales and customer 360"]
-```
-
+![Data lake zones](diagrams/data-lake-zones.svg)
 | Zone | S3 prefix | Format | Purpose |
 |---|---|---|---|
 | Bronze/raw | `raw/source=retail/` | CSV | Retains the source exactly as received and supports replay. |
@@ -121,23 +91,7 @@ s3://<BUCKET>/
 `-- athena-results/
 ```
 
-```mermaid
-flowchart TD
-    Bucket["s3://BUCKET"] --> Raw["raw/source=retail"]
-    Raw --> Customers["entity=customers/ingest_date=YYYY-MM-DD"]
-    Raw --> Products["entity=products/ingest_date=YYYY-MM-DD"]
-    Raw --> Orders["entity=orders/ingest_date=YYYY-MM-DD"]
-    Raw --> Items["entity=order_items/ingest_date=YYYY-MM-DD"]
-    Raw --> Events["entity=order_status_events/ingest_date=YYYY-MM-DD"]
-    Bucket --> Curated["curated"]
-    Curated --> CuratedEntities["customers, products, orders,<br/>order_items, order_status_events"]
-    Bucket --> Quarantine["quarantine/entity=.../run_id=..."]
-    Bucket --> Gold["gold"]
-    Gold --> DailySales["daily_sales"]
-    Gold --> Customer360["customer_360"]
-    Bucket --> Results["athena-results"]
-```
-
+![Amazon S3 prefix design](diagrams/s3-design.svg)
 Partitioning the raw files by ingestion date supports batch traceability. Curated orders and order items are partitioned by business `order_date`, which supports efficient date-filtered Athena queries.
 
 ## Data-quality rules
@@ -161,7 +115,7 @@ aws-dea-retail-lakehouse/
 |-- data/
 |   |-- good/                         # Valid sample CSV files
 |   `-- bad/                          # Deliberately invalid test records
-|-- docs/                             # Console guide, runbook, exam map, and learning plan
+|--                              # Console guide, runbook, exam map, and learning plan
 |-- evidence/                         # Templates for results and screenshots
 |-- glue/
 |   |-- retail_bronze_to_silver.py    # Main Glue PySpark job
@@ -174,7 +128,7 @@ aws-dea-retail-lakehouse/
 `-- README.md
 ```
 
-##  build sequence
+## Four-hour build sequence
 
 1. **Create the S3 bucket and prefixes** — establishes storage zones and keeps data organized by processing stage.
 2. **Upload the five good CSV files** — creates a known-good baseline for the first pipeline run.
@@ -189,6 +143,41 @@ aws-dea-retail-lakehouse/
 11. **Upload and process the bad-data files** — proves invalid data is quarantined and does not contaminate curated results.
 12. **Capture evidence and clean up** — records results for the portfolio and removes sandbox resources if required.
 
+The detailed console instructions are in [00-pluralsight-4-hour-sprint.md](00-pluralsight-4-hour-sprint.md).
+
+## Glue job parameters
+
+| Parameter | Example | Meaning |
+|---|---|---|
+| `--BUCKET` | `dea-retail-example-20260809` | Bucket name only; do not include `s3://` or a trailing slash. |
+| `--RUN_ID` | `good-001` | Identifies the processing attempt and separates quarantine output. |
+| `--JOB_NAME` | Supplied by Glue | Used by the Glue job initialization code. |
+
+```
+
+## Reprocessing behavior
+
+- Raw files remain available so a batch can be replayed.
+- Curated datasets use overwrite mode, preventing repeated runs from appending duplicate copies of the same source data.
+- Duplicate order IDs are rejected during validation.
+- Quarantine output is separated by `RUN_ID`, making each processing attempt traceable.
+- Step Functions waits for Glue completion and exposes the pipeline's true success or failure status.
+
+For a production implementation, replace full-dataset overwrite with incremental partition writes or an Apache Iceberg merge strategy, and store batch metadata in a control table.
 
 
+## Skills demonstrated
 
+- Designing S3 data lake zones and partition paths
+- Developing AWS Glue PySpark ETL
+- Applying schema, quality, duplicate, and referential-integrity checks
+- Converting CSV to Parquet with Snappy compression
+- Cataloging data and querying it with Athena
+- Building gold reporting tables with CTAS
+- Orchestrating synchronous Glue jobs with Step Functions
+- Implementing retry, catch, success, and failure behavior
+- Validating data from source through reporting outputs
+- Designing for auditability, idempotency, security, and cost control
+
+
+This project is intentionally small, but AWS services can still incur charges outside a sandbox. Delete or stop temporary resources after completing the lab, including Glue jobs and crawlers, Step Functions executions, CloudWatch log groups, Athena output, and project S3 objects. Never leave optional Aurora, DMS, Redshift, or streaming resources running solely for portfolio evidence.
