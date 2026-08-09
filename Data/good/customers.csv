@@ -1,0 +1,6 @@
+﻿customer_id,first_name,last_name,email,country,created_at
+C001,Asha,Rao,asha.rao@example.com,US,2026-07-01T12:00:00Z
+C002,Daniel,Kim,daniel.kim@example.com,US,2026-07-03T15:30:00Z
+C003,Sofia,Martin,sofia.martin@example.com,CA,2026-07-04T10:15:00Z
+C004,Noah,Williams,noah.williams@example.com,GB,2026-07-06T18:45:00Z
+C005,Mei,Chen,mei.chen@example.com,US,2026-07-09T09:20:00Z

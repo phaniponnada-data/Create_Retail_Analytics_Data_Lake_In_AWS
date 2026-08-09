@@ -1,0 +1,6 @@
+﻿product_id,product_name,category,unit_price,active
+P100,Mechanical Keyboard,Accessories,80.00,true
+P101,Wireless Mouse,Accessories,25.00,true
+P102,27-inch Monitor,Displays,240.00,true
+P103,USB-C Dock,Accessories,120.00,true
+P104,Web Camera,Video,60.00,true
