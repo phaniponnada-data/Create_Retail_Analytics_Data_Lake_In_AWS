@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="650" viewBox="0 0 1400 650" role="img" aria-labelledby="title desc">
+  <title id="title">AWS Retail Analytics Data Lake Architecture</title>
+  <desc id="desc">Retail CSV files flow into S3 raw storage, through AWS Glue validation, into curated Parquet, the Glue Data Catalog, Athena, and gold reporting tables. Invalid rows are quarantined, Step Functions orchestrates Glue, IAM controls access, and CloudWatch records logs.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#475569"/></marker>
+    <style>
+      .title{font:700 28px Arial,sans-serif;fill:#0f172a}.label{font:700 17px Arial,sans-serif;fill:#0f172a}.sub{font:14px Arial,sans-serif;fill:#334155}.edge{stroke:#475569;stroke-width:3;fill:none;marker-end:url(#arrow)}.dash{stroke:#64748b;stroke-width:2.5;stroke-dasharray:8 6;fill:none;marker-end:url(#arrow)}.edge-label{font:13px Arial,sans-serif;fill:#475569}.box{stroke-width:2.5;rx:14;ry:14}
+    </style>
+  </defs>
+  <rect width="1400" height="650" fill="#f8fafc"/>
+  <text x="700" y="45" text-anchor="middle" class="title">AWS Retail Analytics Data Lake Architecture</text>
+
+  <rect class="box" x="35" y="245" width="155" height="105" fill="#ffffff" stroke="#64748b"/>
+  <text x="112" y="284" text-anchor="middle" class="label">Retail CSV</text><text x="112" y="310" text-anchor="middle" class="sub">Daily source files</text><text x="112" y="332" text-anchor="middle" class="sub">5 entities</text>
+
+  <rect class="box" x="235" y="225" width="190" height="145" fill="#e0f2fe" stroke="#0284c7"/>
+  <text x="330" y="266" text-anchor="middle" class="label">Amazon S3</text><text x="330" y="293" text-anchor="middle" class="sub">Raw / bronze zone</text><text x="330" y="317" text-anchor="middle" class="sub">Original CSV</text><text x="330" y="341" text-anchor="middle" class="sub">Audit and replay</text>
+
+  <rect class="box" x="475" y="205" width="210" height="185" fill="#fff7ed" stroke="#f97316"/>
+  <text x="580" y="251" text-anchor="middle" class="label">AWS Glue Spark</text><text x="580" y="279" text-anchor="middle" class="sub">Apply schemas</text><text x="580" y="303" text-anchor="middle" class="sub">Validate and deduplicate</text><text x="580" y="327" text-anchor="middle" class="sub">Check references</text><text x="580" y="351" text-anchor="middle" class="sub">Convert CSV to Parquet</text>
+
+  <rect class="box" x="735" y="225" width="190" height="145" fill="#dcfce7" stroke="#16a34a"/>
+  <text x="830" y="266" text-anchor="middle" class="label">Amazon S3</text><text x="830" y="293" text-anchor="middle" class="sub">Curated / silver</text><text x="830" y="317" text-anchor="middle" class="sub">Parquet + Snappy</text><text x="830" y="341" text-anchor="middle" class="sub">Valid records</text>
+
+  <rect class="box" x="975" y="225" width="170" height="145" fill="#f3e8ff" stroke="#9333ea"/>
+  <text x="1060" y="264" text-anchor="middle" class="label">Glue Catalog</text><text x="1060" y="292" text-anchor="middle" class="sub">Crawler</text><text x="1060" y="316" text-anchor="middle" class="sub">Tables, columns</text><text x="1060" y="340" text-anchor="middle" class="sub">and partitions</text>
+
+  <rect class="box" x="1195" y="170" width="170" height="105" fill="#fef3c7" stroke="#d97706"/>
+  <text x="1280" y="211" text-anchor="middle" class="label">Amazon Athena</text><text x="1280" y="239" text-anchor="middle" class="sub">SQL validation</text>
+
+  <rect class="box" x="1195" y="325" width="170" height="115" fill="#ecfccb" stroke="#65a30d"/>
+  <text x="1280" y="365" text-anchor="middle" class="label">Gold tables</text><text x="1280" y="392" text-anchor="middle" class="sub">Daily sales</text><text x="1280" y="416" text-anchor="middle" class="sub">Customer 360</text>
+
+  <rect class="box" x="475" y="470" width="210" height="110" fill="#fee2e2" stroke="#dc2626"/>
+  <text x="580" y="510" text-anchor="middle" class="label">S3 Quarantine</text><text x="580" y="537" text-anchor="middle" class="sub">Rejected records</text><text x="580" y="561" text-anchor="middle" class="sub">reject_reason + run_id</text>
+
+  <rect class="box" x="465" y="80" width="230" height="90" fill="#ede9fe" stroke="#7c3aed"/>
+  <text x="580" y="118" text-anchor="middle" class="label">AWS Step Functions</text><text x="580" y="145" text-anchor="middle" class="sub">Glue StartJobRun.sync</text>
+
+  <rect class="box" x="755" y="480" width="170" height="95" fill="#e2e8f0" stroke="#475569"/>
+  <text x="840" y="518" text-anchor="middle" class="label">CloudWatch</text><text x="840" y="545" text-anchor="middle" class="sub">Job status and logs</text>
+
+  <rect class="box" x="975" y="480" width="170" height="95" fill="#e2e8f0" stroke="#475569"/>
+  <text x="1060" y="518" text-anchor="middle" class="label">AWS IAM</text><text x="1060" y="545" text-anchor="middle" class="sub">Roles and policies</text>
+
+  <path class="edge" d="M190 298 H235"/><path class="edge" d="M425 298 H475"/><path class="edge" d="M685 298 H735"/><path class="edge" d="M925 298 H975"/><path class="edge" d="M1145 270 L1195 235"/><path class="edge" d="M1280 275 V325"/>
+  <path class="edge" d="M580 390 V470"/><text x="592" y="438" class="edge-label">invalid rows</text>
+  <path class="edge" d="M580 170 V205"/><text x="596" y="192" class="edge-label">orchestrates</text>
+  <path class="dash" d="M685 365 L780 480"/><path class="dash" d="M1060 480 V370"/>
+</svg>

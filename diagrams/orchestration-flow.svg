@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1050" height="470" viewBox="0 0 1050 470" role="img" aria-labelledby="title desc">
+  <title id="title">Step Functions orchestration flow</title>
+  <desc id="desc">A Standard Step Functions workflow starts a synchronous Glue job. Successful jobs reach PipelineSucceeded and all caught errors reach PipelineFailed.</desc>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#475569"/></marker><style>.title{font:700 27px Arial,sans-serif;fill:#0f172a}.label{font:700 18px Arial,sans-serif;fill:#0f172a}.sub{font:14px Arial,sans-serif;fill:#334155}.edge{stroke:#475569;stroke-width:3;fill:none;marker-end:url(#arrow)}.edge-label{font:700 14px Arial,sans-serif}.box{stroke-width:2.5;rx:14;ry:14}</style></defs>
+  <rect width="1050" height="470" fill="#f8fafc"/><text x="525" y="43" text-anchor="middle" class="title">Step Functions Orchestration</text>
+  <circle cx="525" cy="95" r="36" fill="#fef3c7" stroke="#d97706" stroke-width="2.5"/><text x="525" y="101" text-anchor="middle" class="label">Start</text>
+  <rect class="box" x="365" y="165" width="320" height="110" fill="#ede9fe" stroke="#7c3aed"/><text x="525" y="205" text-anchor="middle" class="label">RunBronzeToSilver</text><text x="525" y="234" text-anchor="middle" class="sub">AWS Glue StartJobRun.sync</text><text x="525" y="257" text-anchor="middle" class="sub">Wait for task to complete</text>
+  <rect class="box" x="85" y="340" width="300" height="90" fill="#fee2e2" stroke="#dc2626"/><text x="235" y="378" text-anchor="middle" class="label">PipelineFailed</text><text x="235" y="405" text-anchor="middle" class="sub">Fail state</text>
+  <rect class="box" x="665" y="340" width="300" height="90" fill="#dcfce7" stroke="#16a34a"/><text x="815" y="378" text-anchor="middle" class="label">PipelineSucceeded</text><text x="815" y="405" text-anchor="middle" class="sub">Succeed state</text>
+  <path class="edge" d="M525 131 V165"/><path class="edge" d="M430 275 L265 340"/><path class="edge" d="M620 275 L785 340"/>
+  <text x="315" y="300" text-anchor="middle" class="edge-label" fill="#dc2626">Catch: States.ALL</text><text x="735" y="300" text-anchor="middle" class="edge-label" fill="#16a34a">Glue SUCCEEDED</text>
+</svg>
